@@ -1,0 +1,3 @@
+service:
+  nba-public-api-url: https://stats.nba.com/stats/
+  prefill-seasons: 2018-19
