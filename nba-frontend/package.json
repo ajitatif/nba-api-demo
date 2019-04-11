@@ -1,0 +1,15 @@
+{
+  "name": "nba-frontend",
+  "version": "1.0.0",
+  "description": "The simplest front end for your eyes to see",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server -p 80"
+  },
+  "author": "Gökalp Gürbüzer (gokalp.gurbuzer@yandex.com)",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "http-server": "^0.11.1"
+  }
+}
