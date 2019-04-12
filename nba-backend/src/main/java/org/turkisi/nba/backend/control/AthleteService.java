@@ -39,7 +39,7 @@ public class AthleteService {
     @PostConstruct
     public void init() {
         String prefillSeasons = parameters.getPrefillSeasons();
-        if (prefillSeasons != null && !prefillSeasons.isBlank()) {
+        if (prefillSeasons != null && !prefillSeasons.trim().isEmpty()) {
             String[] seasons = prefillSeasons.split(",");
             for (String season : seasons) {
                 logger.info("Pre-filling from season {}", season);
