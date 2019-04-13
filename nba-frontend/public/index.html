@@ -8,43 +8,131 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <title>NBA API Demo</title>
+    <style>
+    	.content {
+    		display: grid;
+    	}
+    	.search {
+    		grid-row: 1;
+    	}
+    	.result {
+    		grid-row: 2;
+    	}
+    	.result table {
+    		width: 100%;
+    	}
+    	table tr:nth-child(even) {
+    		background-color: #ddd;
+    	}
+    </style>
 </head>
 <body>
 	<h1>NBA Front-end</h1>
-	<div>
-		<form>
-			<div class="form-group">
-				<input class="form-control" placeholder="Player Name or Team Abbr." type="text" name="name" id="txtName" />
-			</div>
-		</form>
+	<div id="content">
+		<div class="search">
+			<form id="theForm">
+				<div class="form-group">
+					<select class="form-control" placeholder="Player Name or Team Abbr." name="name" id="txtName" autcomplete="off"></select>
+				</div>
+			</form>
+		</div>
+		<div class="result">
+
+		</div>
 	</div>
 	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 	<script src="https://cdn.rawgit.com/xcash/bootstrap-autocomplete/v2.0.0/dist/latest/bootstrap-autocomplete.min.js"></script>
 	<script type="text/javascript">
+		var selectedAthlete = undefined;
 		$(function() {
 			$('#txtName').autoComplete({
 				events: {
 					search: (query, callback) => {
-						console.log("Got query: " + query);
 						fetch("http://localhost:8080/players/v1/search?q=" + query)
 							.then((response) => {
 								response.json().then((data) => {
-									console.log("Got response: " + JSON.stringify(data));
 									callback(data);									
 								});
 							})
 					},
 					searchPost: (result) => {
-						console.log(JSON.stringify(result));
 						return result.map(r => {
 							return { value: r.id, text: `${r.name} ${r.surname}` };
 						});
 					}
 				}
 			});
+			$('#txtName').on("autocomplete.select", function(event, item) {
+				if (!selectedAthlete || selectedAthlete.value !== item.value) {
+
+					fetch(`http://localhost:8080/players/v1/${item.value}/stats`)
+						.then((response) => {
+							response.json().then((data) => {
+								populate(data);
+							});
+						})
+					selectedAthlete = item;
+				}
+			});
+			$("form").submit((event) => { event.preventDefault(); return false; });
 		});
+
+		function populate(data) {
+
+			$(".result").empty();
+
+			var table = document.createElement("table");
+			var thead = document.createElement("thead");
+			var theadRow = document.createElement("tr");
+			theadRow.append(createTextElem("th", "Season"));
+			theadRow.append(createTextElem("th", "Team"));
+			theadRow.append(createTextElem("th", "Age"));
+			theadRow.append(createTextElem("th", "GP"));
+			theadRow.append(createTextElem("th", "GS"));
+			theadRow.append(createTextElem("th", "MPG"));
+			theadRow.append(createTextElem("th", "FG%"));
+			theadRow.append(createTextElem("th", "3PT%"));
+			theadRow.append(createTextElem("th", "FT%"));
+			theadRow.append(createTextElem("th", "RPG"));
+			theadRow.append(createTextElem("th", "APG"));
+			theadRow.append(createTextElem("th", "SPG"));
+			theadRow.append(createTextElem("th", "BPG"));
+			theadRow.append(createTextElem("th", "TOPG"));
+			theadRow.append(createTextElem("th", "PPG"));
+			thead.append(theadRow);
+			table.append(thead);
+			data.forEach(datum => {
+				var row = document.createElement("tr")
+				row.append(createTextElem("td", datum.season));
+				row.append(createTextElem("td", datum.team));
+				row.append(createTextElem("td", datum.age));
+				row.append(createTextElem("td", datum.gamesPlayed));
+				row.append(createTextElem("td", datum.gamesStarted));
+				row.append(createTextElem("td", datum.minutes));
+				row.append(createTextElem("td", datum.fieldGoals.pct));
+				row.append(createTextElem("td", datum.threePointers.pct));
+				row.append(createTextElem("td", datum.freeThrows.pct));
+				row.append(createTextElem("td", datum.rebounds));
+				row.append(createTextElem("td", datum.assists));
+				row.append(createTextElem("td", datum.steals));
+				row.append(createTextElem("td", datum.blocks));
+				row.append(createTextElem("td", datum.turnovers));
+				row.append(createTextElem("td", datum.points));
+
+				table.append(row);
+			});
+
+			$(".result").append(table);
+		}
+
+		function createTextElem(tag, text) {
+			var elem = document.createElement(tag);
+			elem.append(document.createTextNode(text));
+
+			return elem;
+		}
 	</script>
 </body>
 </html>
